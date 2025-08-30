@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="962142bd-bdd4-4911-a9ab-f70db252b120" name="更改" comment="" />
+    <list default="true" id="962142bd-bdd4-4911-a9ab-f70db252b120" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.project/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.project/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/DivCharacterController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/DivCharacterController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/PlayerControler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/PlayerControler.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/TouchLook.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/TouchLook.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -98,7 +103,7 @@
       <option name="presentableId" value="Default" />
       <updated>1756350989785</updated>
       <workItem from="1756350992660" duration="15601000" />
-      <workItem from="1756443759019" duration="17025000" />
+      <workItem from="1756443759019" duration="22205000" />
     </task>
     <servers />
   </component>

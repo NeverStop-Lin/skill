@@ -72,7 +72,7 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
 
         // Move and look inputs
         _moveInputVector = cameraPlanarRotation * moveInputVector;
-        _lookInputVector = cameraPlanarDirection;
+        _lookInputVector = cameraPlanarRotation * moveInputVector;
 
         // Jumping input
         if (inputs.JumpDown)
@@ -93,7 +93,6 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
         }
 
         MeshRoot.transform.rotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
-        ;
     }
 
     /// <summary>
