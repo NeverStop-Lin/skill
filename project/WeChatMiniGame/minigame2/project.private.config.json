@@ -1,0 +1,36 @@
+{
+  "libVersion": "3.9.3",
+  "projectname": "webgl",
+  "condition": {
+    "game": {
+      "list": [
+        {
+          "name": "11",
+          "pathName": "",
+          "query": "cs=ch",
+          "scene": null,
+          "launchMode": "defalut"
+        }
+      ]
+    }
+  },
+  "setting": {
+    "urlCheck": false,
+    "coverView": true,
+    "lazyloadPlaceholderEnable": false,
+    "skylineRenderEnable": false,
+    "preloadBackgroundData": false,
+    "autoAudits": false,
+    "useApiHook": false,
+    "useApiHostProcess": true,
+    "showShadowRootInWxmlPanel": true,
+    "useStaticServer": false,
+    "useLanDebug": false,
+    "showES6CompileOption": false,
+    "compileHotReLoad": false,
+    "checkInvalidKey": true,
+    "ignoreDevUnusedFiles": true,
+    "bigPackageSizeSupport": false,
+    "useIsolateContext": true
+  }
+}

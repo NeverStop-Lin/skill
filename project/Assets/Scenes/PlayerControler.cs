@@ -22,7 +22,7 @@ public class PlayerControler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+       
 
         var input = new PlayerCharacterInputs
         {
@@ -31,20 +31,13 @@ public class PlayerControler : MonoBehaviour
             CameraRotation = cinemachineBrain.transform.rotation,
             JumpDown = false
         };
-
         characterController.SetInputs(ref input);
-    }
-
-    private void FixedUpdate()
-    {
-     
     }
 
     private void LateUpdate()
     {
-        // cinemachineBrain.ManualUpdate();
-        // characterController.UpdateRootForward(cinemachineBrain.transform.rotation);
-        // cinemachineFreeLook.m_XAxis.Value += touchLook.LookInputDelta.x * Time.deltaTime*10;
-        // cinemachineFreeLook.m_YAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.y * Time.deltaTime)) * -1;
+        // cinemachineFreeLook.m_XAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.x * Time.deltaTime)) * -100;
+        cinemachineFreeLook.m_XAxis.Value +=  Time.deltaTime * -100;
+        cinemachineFreeLook.m_YAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.y * Time.deltaTime)) * -1;
     }
 }

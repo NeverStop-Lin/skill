@@ -56,18 +56,14 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     public void SetInputs(ref PlayerCharacterInputs inputs)
     {
         // Clamp input
-        Vector3 moveInputVector =
-            Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
+        var moveInputVector = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
-        // Calculate camera direction and rotation on the character plane
-        Vector3 cameraPlanarDirection =
-            Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
+        // 计算摄像机与地面平行的方向和旋转角度
+        Vector3 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
         if (cameraPlanarDirection.sqrMagnitude == 0f)
         {
-            cameraPlanarDirection =
-                Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
+            cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
         }
-
         Quaternion cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
 
         // Move and look inputs
@@ -80,19 +76,6 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
             _timeSinceJumpRequested = 0f;
             _jumpRequested = true;
         }
-    }
-
-    public void UpdateRootForward(Quaternion cameraRotation)
-    {
-        Vector3 cameraPlanarDirection =
-            Vector3.ProjectOnPlane(cameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
-        if (cameraPlanarDirection.sqrMagnitude == 0f)
-        {
-            cameraPlanarDirection =
-                Vector3.ProjectOnPlane(cameraRotation * Vector3.up, Motor.CharacterUp).normalized;
-        }
-
-        MeshRoot.transform.rotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
     }
 
     /// <summary>
