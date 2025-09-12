@@ -41,7 +41,7 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     public bool _jumpConsumed = false;
     public float _JumpCount = 0; // 跳跃次数
     public float _JumpHeightCount = 0; // 跳跃高度
-    public float _JumpTimeCount = 0; // 跳跃高度
+    public float _LastObjPosY = 0;
     public AnimationCurve JumpSpeedCurve;
 
     private void Start()
@@ -164,8 +164,8 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
             {
                 _JumpCount += 1;
                 _JumpHeightCount = 0;
-                _JumpTimeCount = 0;
                 _jumpConsumed = true;
+                _LastObjPosY = transform.position.y;
             }
 
             _jumpRequested = false;
@@ -174,17 +174,15 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
 
         if (_jumpConsumed)
         {
-            var totalTime = JumpHeight / JumpSpeed;
-            _JumpTimeCount += Time.deltaTime;
+            _JumpHeightCount = transform.position.y - _LastObjPosY;
             var progress = JumpSpeedCurve.Evaluate(Mathf.Clamp01(_JumpHeightCount / JumpHeight));
-            var resultY = JumpSpeed * progress - _JumpHeightCount;
-            _JumpHeightCount += resultY;
+            var forceValue = JumpSpeed * progress * Time.deltaTime;
 
             // 消耗跳跃高度
-            if (resultY > 0)
+            if (forceValue > 0)
             {
                 Vector3 projection = Vector3.Project(currentVelocity, Motor.CharacterUp);
-                currentVelocity = (currentVelocity - projection) + (Motor.CharacterUp * resultY);
+                currentVelocity = (currentVelocity - projection) + (Motor.CharacterUp * forceValue);
                 Motor.ForceUnground();
             }
             else
