@@ -41,6 +41,7 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     public bool _jumpConsumed = false;
     public float _JumpCount = 0; // 跳跃次数
     public float _JumpHeightCount = 0; // 跳跃高度
+    public float _JumpTimeCount = 0; // 跳跃高度
     public AnimationCurve JumpSpeedCurve;
 
     private void Start()
@@ -163,35 +164,27 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
             {
                 _JumpCount += 1;
                 _JumpHeightCount = 0;
+                _JumpTimeCount = 0;
                 _jumpConsumed = true;
             }
 
             _jumpRequested = false;
         }
 
-        JumpSpeedCurve.Evaluate(Mathf.Clamp01(_JumpHeightCount / _JumpCount));
 
         if (_jumpConsumed)
         {
+            var totalTime = JumpHeight / JumpSpeed;
+            _JumpTimeCount += Time.deltaTime;
+            var progress = JumpSpeedCurve.Evaluate(Mathf.Clamp01(_JumpHeightCount / JumpHeight));
+            var resultY = JumpSpeed * progress - _JumpHeightCount;
+            _JumpHeightCount += resultY;
+
             // 消耗跳跃高度
-            if (_JumpHeightCount + (JumpSpeed * Time.deltaTime) < JumpHeight) // 跳跃
+            if (resultY > 0)
             {
                 Vector3 projection = Vector3.Project(currentVelocity, Motor.CharacterUp);
-                Vector3 result = currentVelocity - projection;
-                result += Motor.CharacterUp * (JumpSpeed * Time.deltaTime);
-                currentVelocity = result;
-
-                _JumpHeightCount += (JumpSpeed * Time.deltaTime);
-                Motor.ForceUnground();
-            }
-            else if (_JumpHeightCount < JumpHeight)
-            {
-                Vector3 projection = Vector3.Project(currentVelocity, Motor.CharacterUp);
-                Vector3 result = currentVelocity - projection;
-                result += Motor.CharacterUp * (JumpHeight - _JumpHeightCount);
-                currentVelocity = result;
-
-                _JumpHeightCount = JumpHeight;
+                currentVelocity = (currentVelocity - projection) + (Motor.CharacterUp * resultY);
                 Motor.ForceUnground();
             }
             else
