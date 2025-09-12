@@ -22,22 +22,27 @@ public class PlayerControler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       
-
         var input = new PlayerCharacterInputs
         {
             MoveAxisForward = virtualJoystick.Input.y,
             MoveAxisRight = virtualJoystick.Input.x,
             CameraRotation = cinemachineBrain.transform.rotation,
-            JumpDown = false
+            JumpDown = isJump
         };
+        isJump = false;
         characterController.SetInputs(ref input);
+    }
+
+    private bool isJump = false;
+
+    public void ClickJump()
+    {
+        isJump = true;
     }
 
     private void LateUpdate()
     {
-        // cinemachineFreeLook.m_XAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.x * Time.deltaTime)) * -100;
-        cinemachineFreeLook.m_XAxis.Value +=  Time.deltaTime * -100;
+        cinemachineFreeLook.m_XAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.x * Time.deltaTime)) * -100;
         cinemachineFreeLook.m_YAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.y * Time.deltaTime)) * -1;
     }
 }

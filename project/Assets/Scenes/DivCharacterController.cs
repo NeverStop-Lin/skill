@@ -26,23 +26,22 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     public float AirAccelerationSpeed = 5f;
     public float Drag = 0.1f;
 
-    [Header("Jumping")] public bool AllowJumpingWhenSliding = false;
-    public float JumpSpeed = 10f;
-    public float JumpPreGroundingGraceTime = 0f;
-    public float JumpPostGroundingGraceTime = 0f;
+    [Header("Jumping")] public float JumpSpeed = 10f; // 跳跃速度
+    public float JumpHeight = 2f; // 跳跃高度
+    public float JumpCount = 2f; // 跳跃次数
 
     [Header("Misc")] public Vector3 Gravity = new Vector3(0, -30f, 0);
     public Transform MeshRoot;
 
-
     private Vector3 _moveInputVector;
     private Vector3 _lookInputVector;
-    private bool _jumpRequested = false;
-    private bool _jumpConsumed = false;
-    private bool _jumpedThisFrame = false;
-    private float _timeSinceJumpRequested = Mathf.Infinity;
-    private float _timeSinceLastAbleToJump = 0f;
 
+    // Jumping ############
+    public bool _jumpRequested = false;
+    public bool _jumpConsumed = false;
+    public float _JumpCount = 0; // 跳跃次数
+    public float _JumpHeightCount = 0; // 跳跃高度
+    public AnimationCurve JumpSpeedCurve;
 
     private void Start()
     {
@@ -59,11 +58,14 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
         var moveInputVector = Vector3.ClampMagnitude(new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward), 1f);
 
         // 计算摄像机与地面平行的方向和旋转角度
-        Vector3 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
+        Vector3 cameraPlanarDirection =
+            Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
         if (cameraPlanarDirection.sqrMagnitude == 0f)
         {
-            cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
+            cameraPlanarDirection =
+                Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.up, Motor.CharacterUp).normalized;
         }
+
         Quaternion cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
 
         // Move and look inputs
@@ -73,7 +75,6 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
         // Jumping input
         if (inputs.JumpDown)
         {
-            _timeSinceJumpRequested = 0f;
             _jumpRequested = true;
         }
     }
@@ -112,7 +113,8 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
         Vector3 targetMovementVelocity = Vector3.zero;
-        if (Motor.GroundingStatus.IsStableOnGround)
+
+        if (Motor.GroundingStatus.IsStableOnGround) // 地面
         {
             // Reorient velocity on slope
             currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, Motor.GroundingStatus.GroundNormal) *
@@ -123,14 +125,13 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
             Vector3 reorientedInput = Vector3.Cross(Motor.GroundingStatus.GroundNormal, inputRight).normalized *
                                       _moveInputVector.magnitude;
             targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
-
             // Smooth movement Velocity
             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity,
                 1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
         }
-        else
+        else // 空中
         {
-            // Add move input
+            // 输入的控制逻辑
             if (_moveInputVector.sqrMagnitude > 0f)
             {
                 targetMovementVelocity = _moveInputVector * MaxAirMoveSpeed;
@@ -149,41 +150,53 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
                 currentVelocity += velocityDiff * AirAccelerationSpeed * deltaTime;
             }
 
-            // Gravity
+            // 重力
             currentVelocity += Gravity * deltaTime;
 
-            // Drag
+            // 阻力
             currentVelocity *= (1f / (1f + (Drag * deltaTime)));
         }
 
-        // Handle jumping
-        _jumpedThisFrame = false;
-        _timeSinceJumpRequested += deltaTime;
         if (_jumpRequested)
         {
-            // See if we actually are allowed to jump
-            if (!_jumpConsumed &&
-                ((AllowJumpingWhenSliding
-                     ? Motor.GroundingStatus.FoundAnyGround
-                     : Motor.GroundingStatus.IsStableOnGround) ||
-                 _timeSinceLastAbleToJump <= JumpPostGroundingGraceTime))
+            if (_JumpCount < JumpCount) // 还有跳跃次数就受理这次请求
             {
-                // Calculate jump direction before ungrounding
-                Vector3 jumpDirection = Motor.CharacterUp;
-                if (Motor.GroundingStatus.FoundAnyGround && !Motor.GroundingStatus.IsStableOnGround)
-                {
-                    jumpDirection = Motor.GroundingStatus.GroundNormal;
-                }
-
-                // Makes the character skip ground probing/snapping on its next update. 
-                // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
-                Motor.ForceUnground(0.1f);
-
-                // Add to the return velocity and reset jump state
-                currentVelocity += (jumpDirection * JumpSpeed) - Vector3.Project(currentVelocity, Motor.CharacterUp);
-                _jumpRequested = false;
+                _JumpCount += 1;
+                _JumpHeightCount = 0;
                 _jumpConsumed = true;
-                _jumpedThisFrame = true;
+            }
+
+            _jumpRequested = false;
+        }
+
+        JumpSpeedCurve.Evaluate(Mathf.Clamp01(_JumpHeightCount / _JumpCount));
+
+        if (_jumpConsumed)
+        {
+            // 消耗跳跃高度
+            if (_JumpHeightCount + (JumpSpeed * Time.deltaTime) < JumpHeight) // 跳跃
+            {
+                Vector3 projection = Vector3.Project(currentVelocity, Motor.CharacterUp);
+                Vector3 result = currentVelocity - projection;
+                result += Motor.CharacterUp * (JumpSpeed * Time.deltaTime);
+                currentVelocity = result;
+
+                _JumpHeightCount += (JumpSpeed * Time.deltaTime);
+                Motor.ForceUnground();
+            }
+            else if (_JumpHeightCount < JumpHeight)
+            {
+                Vector3 projection = Vector3.Project(currentVelocity, Motor.CharacterUp);
+                Vector3 result = currentVelocity - projection;
+                result += Motor.CharacterUp * (JumpHeight - _JumpHeightCount);
+                currentVelocity = result;
+
+                _JumpHeightCount = JumpHeight;
+                Motor.ForceUnground();
+            }
+            else
+            {
+                _jumpConsumed = false;
             }
         }
     }
@@ -194,31 +207,6 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     /// </summary>
     public void AfterCharacterUpdate(float deltaTime)
     {
-        // Handle jump-related values
-        {
-            // Handle jumping pre-ground grace period
-            if (_jumpRequested && _timeSinceJumpRequested > JumpPreGroundingGraceTime)
-            {
-                _jumpRequested = false;
-            }
-
-            // Handle jumping while sliding
-            if (AllowJumpingWhenSliding ? Motor.GroundingStatus.FoundAnyGround : Motor.GroundingStatus.IsStableOnGround)
-            {
-                // If we're on a ground surface, reset jumping values
-                if (!_jumpedThisFrame)
-                {
-                    _jumpConsumed = false;
-                }
-
-                _timeSinceLastAbleToJump = 0f;
-            }
-            else
-            {
-                // Keep track of time since we were last able to jump (for grace period)
-                _timeSinceLastAbleToJump += deltaTime;
-            }
-        }
     }
 
     public bool IsColliderValidForCollisions(Collider coll)
@@ -229,6 +217,10 @@ public class DivCharacterController : MonoBehaviour, ICharacterController
     public void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
         ref HitStabilityReport hitStabilityReport)
     {
+        if (Motor.GroundingStatus.IsStableOnGround) // 触碰地面重重跳跃次数
+        {
+            _JumpCount = 0;
+        }
     }
 
     public void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint,
