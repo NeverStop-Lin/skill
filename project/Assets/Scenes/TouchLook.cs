@@ -3,15 +3,10 @@ using UnityEngine.EventSystems;
 
 public class TouchLook : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    [Header("设置")]
-    [SerializeField]
-    private float lookSensitivity = 0.5f;
-    [SerializeField]
-    private bool clampVertical = true;
-    [SerializeField]
-    private float minVerticalAngle = -60f;
-    [SerializeField]
-    private float maxVerticalAngle = 60f;
+    [Header("设置")] [SerializeField] private float lookSensitivity = 0.5f;
+    [SerializeField] private bool clampVertical = true;
+    [SerializeField] private float minVerticalAngle = -60f;
+    [SerializeField] private float maxVerticalAngle = 60f;
 
     /// <summary>
     /// 公开的视角输入增量 (X:水平旋转量, Y:垂直旋转量)。
@@ -19,13 +14,14 @@ public class TouchLook : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
     /// </summary>
     public Vector2 LookInputDelta { get; private set; }
 
+    public bool IsDragging => _isDragging;
     public float CurrentVerticalAngle { get; private set; } = 0f;
 
     private Vector2 _lastPointerPosition;
     private bool _isDragging = false;
-    
+
     // --- 核心改动：用一个私有变量来暂存拖拽数据 ---
-    private Vector2 _currentDragDelta; 
+    private Vector2 _currentDragDelta;
 
     /// <summary>
     /// Update 负责消费和重置输入数据
@@ -48,6 +44,7 @@ public class TouchLook : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
             {
                 newVerticalAngle = Mathf.Clamp(newVerticalAngle, minVerticalAngle, maxVerticalAngle);
             }
+
             verticalDelta = CurrentVerticalAngle - newVerticalAngle; // 重新计算实际应用的增量
             CurrentVerticalAngle = newVerticalAngle;
 
@@ -72,7 +69,7 @@ public class TouchLook : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
         Vector2 currentPointerPosition = eventData.position;
         // 累加拖拽位移，而不是直接赋值，以防止在低帧率下丢失输入
-        _currentDragDelta += currentPointerPosition - _lastPointerPosition; 
+        _currentDragDelta += currentPointerPosition - _lastPointerPosition;
         _lastPointerPosition = currentPointerPosition;
     }
 

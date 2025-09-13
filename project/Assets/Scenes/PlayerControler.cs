@@ -12,7 +12,8 @@ public class PlayerControler : MonoBehaviour
     public CinemachineBrain cinemachineBrain;
     public TouchLook touchLook;
 
-    public CinemachineFreeLook cinemachineFreeLook;
+    public CinemachineFreeLook cinemachineFreeLookAuto;
+    public CinemachineFreeLook cinemachineFreeLookTouch;
 
     // Start is called before the first frame update
     void Start()
@@ -31,6 +32,46 @@ public class PlayerControler : MonoBehaviour
         };
         isJump = false;
         characterController.SetInputs(ref input);
+
+
+        if (touchLook.IsDragging)
+        {
+            cinemachineFreeLookAuto.gameObject.SetActive(false);
+            cinemachineFreeLookAuto.transform.position = cinemachineFreeLookTouch.transform.position;
+            cinemachineFreeLookTouch.m_YAxis.m_InputAxisValue =
+                (1 - Mathf.Exp(-touchLook.LookInputDelta.y * Time.deltaTime)) * -30;
+            cinemachineFreeLookTouch.m_XAxis.m_InputAxisValue =
+                (1 - Mathf.Exp(-touchLook.LookInputDelta.x * Time.deltaTime)) * -30;
+        }
+        else
+        {
+            cinemachineFreeLookAuto.gameObject.SetActive(true);
+
+            var a = Vector3.ProjectOnPlane(
+                cinemachineFreeLookAuto.VirtualCameraGameObject.transform.position -
+                characterController.transform.position,
+                Vector3.up
+            );
+            var targetX = Vector3.SignedAngle(-Vector3.forward,a, Vector3.up);
+            var targetY = cinemachineFreeLookAuto.m_YAxis.Value;
+            Debug.Log("角度"+targetX);
+            cinemachineFreeLookTouch.m_XAxis.m_InputAxisValue =
+                cinemachineFreeLookTouch.m_XAxis.Value -
+                Mathf.LerpAngle(cinemachineFreeLookTouch.m_XAxis.Value, targetX, Time.deltaTime);
+            // cinemachineFreeLookTouch.m_YAxis.m_InputAxisValue =
+            // Mathf.LerpAngle(cinemachineFreeLookTouch.m_YAxis.Value, targetY, Time.deltaTime);
+        }
+    }
+
+
+    public void TTTT(ICinemachineCamera a, ICinemachineCamera b)
+    {
+        // if (a != null && b != null)
+        // {
+        //     Debug.Log("new==>" + a.VirtualCameraGameObject.gameObject.name + "@@@" + "old==>" +
+        //               b.VirtualCameraGameObject.gameObject.name);
+        //     b.VirtualCameraGameObject.transform.position = a.VirtualCameraGameObject.transform.position;
+        // }
     }
 
     private bool isJump = false;
@@ -42,7 +83,5 @@ public class PlayerControler : MonoBehaviour
 
     private void LateUpdate()
     {
-        cinemachineFreeLook.m_XAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.x * Time.deltaTime)) * -100;
-        cinemachineFreeLook.m_YAxis.Value += (1 - Mathf.Exp(-touchLook.LookInputDelta.y * Time.deltaTime)) * -1;
     }
 }
